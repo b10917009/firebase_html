@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+    <title>firebase</title>
+    <link rel="stylesheet" href="cssFile.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.2/firebase-database.js"></script>
+    
+</head>
+
+<body>
+    <!--
+    Name<input id="namebox" type="text"></input>
+    Roll NO<input id="rollbox" type="text"></input>
+    Section<input id="secbox" type="text"></input>
+    Gender<input id="genbox" type="text"></input>
+    <br>
+    <button id="insert">insert</button>
+    <button id="show">show</button>
+
+    <input type="text" id="email" name="email" placeholder="E-mail" />
+    <input type="password" id="password" name="password" placeholder="Password" />
+
+    <button id="sign">sign up</button>
+    <button id="login">login</button>
+    <button id="logout">logout</button>
+    
+    -->
+
+    <div class="header">
+        <h1>Header</h1>
+        <button id="logout">logout</button>
+        <p id="nametext"></p>
+        <div class="txa" id="txa" style="background-color:white;"  data-toggle="collapse" data-target="#logout"></div>
+        <!--
+        <div><div class="txa" id="txa" style="background-color:white;"  data-toggle="collapse" data-target="#logout"></div>
+        <button id="logout">logout</button>
+        </div>
+        -->
+        
+    </div>
+    <br>
+
+    <div id="login-box">
+        <div class="left">
+            <h1 id='status'>login</h1>
+            <!--
+            Name<input id="namebox" type="text"></input>
+            Roll NO<input id="rollbox" type="text"></input>
+            Section<input id="secbox" type="text"></input>
+            Gender<input id="genbox" type="text"></input>
+            
+            <br>
+            <button id="insert">insert</button>
+            <button id="show">show</button>
+            -->
+            <input type="text" id="email" name="email" placeholder="E-mail" />
+            <input type="password" id="password" name="password" placeholder="Password" />
+
+            <button id="login">login</button>
+
+
+        </div>
+
+        <div class="right">
+            <h1 id='status'>Sign up</h1>
+            <input type="text" id="email-sign" name="email-sign" placeholder="E-mail" />
+            <input type="password" id="password-sign" name="password-sign" placeholder="Password" />
+
+            <button id="sign">sign up</button>
+            <!--
+            <span class="loginwith">Sign in with<br />social network</span>
+
+            <button class="social-signin facebook">Log in with facebook</button>
+            <button class="social-signin twitter">Log in with Twitter</button>
+            <button class="social-signin google">Log in with Google+</button>
+            -->
+        </div>
+        <div class="or">OR</div>
+    </div>
+    <br>
+    <br>
+    <br>
+    <div class="container" style="margin-top:20px; width: 60%;" id="message-box">
+        
+        <table class="table table-hover" id="message-table">
+
+        </table>
+        <input  id="message-input" name="message-input" placeholder="message-input"/>
+        <button id="enter">Enter</button>
+    </div>
+
+    <button id="delbut" class='delbut'>刪除</button>
+    <p id="pa"></p>
+
+
+    <!--
+        ***************************************************************************
+        ***************************************************************************
+        ***************************************************************************
+        ***************************************************************************
+        ***************************************************************************
+    -->
+    <script>
+        document.getElementById("pa").innerHTML="<button class='delbut' onclick='alert("+"asd"+")'>del</button>";
+    </script>
+    
+    <script type="module">
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.2/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.2/firebase-analytics.js";
+        import { getDatabase, set, ref, push, child, onValue, update ,get,remove} from "https://www.gstatic.com/firebasejs/9.6.2/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.2/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDTS1qdrJV4VolVm6MGywqKgm48uG1iLNs",
+            authDomain: "tarotonline-41b69.firebaseapp.com",
+            databaseURL: "https://tarotonline-41b69-default-rtdb.firebaseio.com",
+            projectId: "tarotonline-41b69",
+            storageBucket: "tarotonline-41b69.appspot.com",
+            messagingSenderId: "1028944559485",
+            appId: "1:1028944559485:web:382ac716d96f2c3b0ba014",
+            measurementId: "G-1KL7JWD2WH"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const database = getDatabase(app);
+        const auth = getAuth();
+        //-------------------------------
+
+        
+        //--------------------------
+        //data insert show
+        var username;
+        
+        function getnamevalue(id){
+            const p=ref(database, 'users/');
+
+
+            onValue(p, (snapshot) => {
+            
+            snapshot.forEach((childSnapshot) => {
+            const childKey = childSnapshot.key;
+            const childData = childSnapshot.val();
+            
+            if(childKey==id){
+                document.getElementById("nametext").innerHTML=childData.email;
+                username=childData.email;
+            }
+
+            });
+            }, {
+            onlyOnce: true
+            });
+        }
+        
+        //---------------------------------------------------------
+        function showmsg(){
+            var rowNum = 0; 
+            document.getElementById("message-table").innerHTML="";
+            const dbRef = ref(database, 'message/');
+
+            onValue(dbRef, (snapshot) => {
+            snapshot.forEach((childSnapshot) => {
+            const childKey = childSnapshot.key;
+            const childData = childSnapshot.val();
+            
+            rowNum += 1; 
+            var row = "<tr>"+"<th>"+ childData.user +"</th>"+"<td>"+ childKey +"</td>"+"<td>"+ childData.msg +"</td>"+"<td>"+"<button class='delbut' onclick='delete_row(\""+childKey+"\")'>刪除</button>"+"</td>"+"</tr>";
+            document.getElementById("pa").innerHTML ="button class='delbut' onclick='delete_row(\""+childKey+"\")'>刪除 button";
+            document.getElementById("message-table").innerHTML +=row;
+            
+            });
+            }, {
+            onlyOnce: true
+            }); 
+        }
+        
+        function clearinput(){
+            
+            document.getElementById("email").value="";
+            document.getElementById("password").value="";
+            document.getElementById("email-sign").value="";
+            document.getElementById("password-sign").value="";
+            document.getElementById("message-input").value=""; 
+            
+        }
+        
+        function delete_row(childKey) {
+        
+        
+        var dataRef =ref(database, 'message/'+childKey);
+        
+        remove(dataRef)
+        .then(function(){
+            alert("Remove succeeded.")
+        })
+        .catch(function(error){
+            alert("Remove Failed!"+error.message)
+        });
+        showmsg();
+        
+        }
+        document.getElementById("delbut").onclick= function(){
+            delete_row('2022-1-22 下午11:25:25');
+        }
+        
+
+        document.getElementById("enter").onclick= function(){
+            var message = document.getElementById('message-input').value;
+            //const userId = push(child(ref(database), 'message/')).key;
+            var dt = new Date().toLocaleString();
+            dt=dt.replace("/","-").replace("/","-");
+            
+            set(ref(database, 'message/' + dt), {
+            msg: message,
+            user:username
+            });
+            
+            document.getElementById("message-input").value="";
+            showmsg();
+        }
+        //--------------------------------------------------------------------------
+        document.getElementById("sign").onclick = function () {
+            var email = document.getElementById('email-sign').value;
+            var password = document.getElementById('password-sign').value;
+            //var username = document.getElementById('username').value;
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Signed in 
+                    const user = userCredential.user;
+                    const dt = new Date();
+                    set(ref(database, 'users/' + user.uid), {
+                        //username: username,
+                        email: email,
+                        last_login: dt,
+                        password: password,
+                    })
+
+                    alert('user created!');
+                    // ...
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+
+                    alert(errorMessage);
+                    // ..
+                });
+        }
+        document.getElementById("login").onclick = function () {
+            var email = document.getElementById('email').value;
+            var password = document.getElementById('password').value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Signed in 
+
+                    const user = userCredential.user;
+
+                    const dt = new Date();
+                    update(ref(database, 'users/' + user.uid), {
+                        last_login: dt,
+                        password: password,
+                    })
+                    username=email;
+                    alert('User loged in!');
+                    // ...
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+
+                    alert(errorMessage);
+                });
+        }
+        document.getElementById("logout").onclick = function () {
+            signOut(auth).then(() => {
+                // Sign-out successful.
+                alert('user loged out');
+            }).catch((error) => {
+                // An error happened.
+                const errorCode = error.code;
+                const errorMessage = error.message;
+
+                alert(errorMessage);
+            });
+        }
+        const user = auth.currentUser;
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in, see docs for a list of available properties
+                // https://firebase.google.com/docs/reference/js/firebase.User
+                const uid = user.uid;
+                getnamevalue(uid);
+                document.getElementById("txa").style.backgroundColor = "chartreuse";
+                document.getElementById("logout").style.display="block";
+                document.getElementById("login-box").style.display="none";
+                document.getElementById("message-box").style.display="block";
+                clearinput();
+                showmsg();
+                // ...
+            } else {
+                // User is signed out
+                // ...
+                //bla bla bla
+                document.getElementById("nametext").innerHTML="";
+                document.getElementById("txa").style.backgroundColor = "coral";
+                document.getElementById("logout").style.display="none";
+                document.getElementById("login-box").style.display="block";
+                document.getElementById("message-box").style.display="none";
+                clearinput();
+            }
+        });
+
+    </script>
+</body>
+
+</html>
